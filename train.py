@@ -173,6 +173,7 @@ def main():
                 metrics_excel_path,
             )
 
+    metrics_saved = False
     for epoch in range(start_epoch + 1, cfg.EPOCHS + 1):
         train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
         val_metrics = validate_cross(
@@ -193,6 +194,7 @@ def main():
             epoch_row[f"val_{variant}_acc"] = val_metrics[variant]["acc"]
         epoch_metrics_rows.append(epoch_row)
         save_epoch_metrics_to_excel(epoch_metrics_rows, metrics_excel_path, headers=headers)
+        metrics_saved = True
 
         val_log_parts = [
             f"{variant}: Loss {val_metrics[variant]['loss']:.4f} Acc {val_metrics[variant]['acc']:.2f}%"
@@ -243,8 +245,9 @@ def main():
                 best_val_loss,
             )
 
-    save_epoch_metrics_to_excel(epoch_metrics_rows, metrics_excel_path, headers=headers)
-    logger.info("Epoch metrics saved to %s", metrics_excel_path)
+    if not metrics_saved and epoch_metrics_rows:
+        save_epoch_metrics_to_excel(epoch_metrics_rows, metrics_excel_path, headers=headers)
+        logger.info("Epoch metrics saved to %s", metrics_excel_path)
 
 
 if __name__ == "__main__":
