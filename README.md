@@ -11,7 +11,8 @@ project/
 │   ├── train/          # 訓練圖片（digit_X_NNNNNN.png 格式）
 │   │   ├── white_black/
 │   │   ├── rainbow_bw/
-│   │   └── bw_rainbow/
+│   │   ├── bw_rainbow/
+│   │   └── special/    # 專有訓練圖片（<variant>_digit_X_NNNNNN.png 格式）
 │   ├── val/            # 驗證圖片
 │   │   ├── white_black/
 │   │   ├── rainbow_bw/
@@ -53,6 +54,7 @@ pip install -r requirements.txt
 data/train/white_black/   ← 訓練集 (約 52000 張)
 data/train/rainbow_bw/    ← 訓練集 (約 52000 張)
 data/train/bw_rainbow/    ← 訓練集 (約 52000 張)
+data/train/special/       ← 專有訓練集（<variant>_digit_X_NNNNNN.png）
 data/val/white_black/     ← 驗證集 (約 8000 張)
 data/val/rainbow_bw/      ← 驗證集 (約 8000 張)
 data/val/bw_rainbow/      ← 驗證集 (約 8000 張)
@@ -60,6 +62,16 @@ data/test/white_black/    ← 測試集 (約 10000 張)
 data/test/rainbow_bw/     ← 測試集 (約 10000 張)
 data/test/bw_rainbow/     ← 測試集 (約 10000 張)
 ```
+
+special 訓練集的檔名格式為 `<variant>_digit_X_NNNNNN.png`，其中 variant 固定為 `bw`、`rbw`、`bwr`：
+
+```
+data/train/special/bw_digit_3_000123.png
+data/train/special/rbw_digit_8_000456.png
+data/train/special/bwr_digit_1_000789.png
+```
+
+訓練時的交叉驗證與測試仍固定使用 `white_black`、`rainbow_bw`、`bw_rainbow` 三種資料集。
 
 若資料不放在專案內的 `data/`，可設定環境變數 `DATA_ROOT` 指向本機資料根目錄（其下仍需 `train/val/test` 與三種分類資料夾）：
 
@@ -78,6 +90,9 @@ $env:DATA_ROOT="C:\你的\資料路徑"; python train.py --dataset white_black
 ```bash
 # 全新訓練（指定模型對應資料集）
 python train.py --dataset white_black
+
+# 使用 special 訓練集（模型名稱可自訂）
+python train.py --dataset my_special
 
 # 從 checkpoint 續訓
 python train.py --dataset white_black --resume checkpoints/white_black/checkpoint_epoch10.pth

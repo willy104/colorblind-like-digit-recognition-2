@@ -54,9 +54,8 @@ def main():
     parser.add_argument(
         "--dataset",
         type=str,
-        choices=cfg.DATASET_VARIANTS,
         default=cfg.DATASET_VARIANTS[0],
-        help="Dataset variant used to select the model checkpoint.",
+        help="Model name used to select the checkpoint.",
     )
     parser.add_argument(
         "--checkpoint",
