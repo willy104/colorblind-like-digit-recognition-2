@@ -37,7 +37,9 @@ else:
 TRAIN_DIR = os.path.join(DATA_ROOT, "train")
 VAL_DIR = os.path.join(DATA_ROOT, "val")
 TEST_DIR = os.path.join(DATA_ROOT, "test")
-DATASET_VARIANTS = ("white_black", "rainbow_bw", "bw_rainbow")
+SPECIAL_TRAIN_DIR = os.path.join(TRAIN_DIR, "special")
+EVAL_VARIANTS = ("white_black", "rainbow_bw", "bw_rainbow")
+DATASET_VARIANTS = list(EVAL_VARIANTS)
 
 # Output directories
 CHECKPOINT_DIR = "checkpoints"

@@ -68,9 +68,8 @@ def main():
     parser.add_argument(
         "--dataset",
         type=str,
-        choices=cfg.DATASET_VARIANTS,
         default=cfg.DATASET_VARIANTS[0],
-        help="Dataset variant used to select the model checkpoint.",
+        help="Model name used to select the checkpoint.",
     )
     parser.add_argument(
         "--checkpoint",
@@ -106,7 +105,7 @@ def main():
     logger.info("Loading checkpoint: %s", args.checkpoint)
     load_checkpoint(args.checkpoint, model)
 
-    for variant in cfg.DATASET_VARIANTS:
+    for variant in cfg.EVAL_VARIANTS:
         variant_dir = os.path.join(cfg.TEST_DIR, variant)
         test_dataset = MyDataset(variant_dir, transform=eval_transform)
         test_loader = DataLoader(test_dataset, shuffle=False, **common_loader_kwargs)

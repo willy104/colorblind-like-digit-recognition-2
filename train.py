@@ -79,6 +79,15 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
     return avg_loss, accuracy
 
 
+def select_primary_val_metrics(val_metrics, eval_variants, dataset_variant):
+    if dataset_variant in val_metrics:
+        return val_metrics[dataset_variant]
+    total_loss = sum(val_metrics[variant]["loss"] for variant in eval_variants)
+    total_acc = sum(val_metrics[variant]["acc"] for variant in eval_variants)
+    count = len(eval_variants)
+    return {"loss": total_loss / count, "acc": total_acc / count}
+
+
 # ---------------------------------------------------------------------------
 # Main training routine
 # ---------------------------------------------------------------------------
@@ -88,9 +97,8 @@ def main():
     parser.add_argument(
         "--dataset",
         type=str,
-        choices=cfg.DATASET_VARIANTS,
         default=cfg.DATASET_VARIANTS[0],
-        help="Dataset variant to train on.",
+        help="Dataset variant or custom model name to train on.",
     )
     parser.add_argument(
         "--resume",
@@ -101,6 +109,8 @@ def main():
     )
     args = parser.parse_args()
     dataset_variant = args.dataset
+    if dataset_variant not in cfg.DATASET_VARIANTS:
+        cfg.DATASET_VARIANTS.append(dataset_variant)
 
     device = cfg.DEVICE
     log_path = os.path.join(cfg.LOG_DIR, f"train_{dataset_variant}.log")
@@ -108,7 +118,10 @@ def main():
     logger.info("Using device: %s", device)
 
     # Datasets & loaders
-    train_dir = os.path.join(cfg.TRAIN_DIR, dataset_variant)
+    if dataset_variant in cfg.EVAL_VARIANTS:
+        train_dir = os.path.join(cfg.TRAIN_DIR, dataset_variant)
+    else:
+        train_dir = cfg.SPECIAL_TRAIN_DIR
     train_dataset = MyDataset(train_dir, transform=train_transform)
 
     use_persistent = cfg.NUM_WORKERS > 0
@@ -134,8 +147,9 @@ def main():
     os.makedirs(output_dir, exist_ok=True)
 
     metrics_excel_path = os.path.join(output_dir, "epoch_metrics.xlsx")
+    eval_variants = cfg.EVAL_VARIANTS
     headers = ["epoch", "train_loss", "train_acc"]
-    for variant in cfg.DATASET_VARIANTS:
+    for variant in eval_variants:
         headers.append(f"val_{variant}_loss")
         headers.append(f"val_{variant}_acc")
 
@@ -180,15 +194,20 @@ def main():
             criterion,
             device,
             cfg.VAL_DIR,
-            cfg.DATASET_VARIANTS,
+            eval_variants,
             common_loader_kwargs,
+        )
+        primary_val_metrics = select_primary_val_metrics(
+            val_metrics,
+            eval_variants,
+            dataset_variant,
         )
         epoch_row = {
             "epoch": epoch,
             "train_loss": train_loss,
             "train_acc": train_acc,
         }
-        for variant in cfg.DATASET_VARIANTS:
+        for variant in eval_variants:
             epoch_row[f"val_{variant}_loss"] = val_metrics[variant]["loss"]
             epoch_row[f"val_{variant}_acc"] = val_metrics[variant]["acc"]
         epoch_metrics_rows.append(epoch_row)
@@ -196,7 +215,7 @@ def main():
 
         val_log_parts = [
             f"{variant}: Loss {val_metrics[variant]['loss']:.4f} Acc {val_metrics[variant]['acc']:.2f}%"
-            for variant in cfg.DATASET_VARIANTS
+            for variant in eval_variants
         ]
         logger.info(
             "Epoch [%d/%d] | Train Loss: %.4f | Train Acc: %.2f%% | Val (%s)",
@@ -214,8 +233,8 @@ def main():
                 "model_state_dict": model.state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),
                 "train_loss": train_loss,
-                "val_loss": val_metrics[dataset_variant]["loss"],
-                "val_acc": val_metrics[dataset_variant]["acc"],
+                "val_loss": primary_val_metrics["loss"],
+                "val_acc": primary_val_metrics["acc"],
             },
             checkpoint_dir,
             f"checkpoint_epoch{epoch}.pth",
@@ -223,16 +242,16 @@ def main():
         logger.info("Checkpoint saved: %s", checkpoint_path)
 
         # Keep best model
-        if val_metrics[dataset_variant]["loss"] < best_val_loss:
-            best_val_loss = val_metrics[dataset_variant]["loss"]
+        if primary_val_metrics["loss"] < best_val_loss:
+            best_val_loss = primary_val_metrics["loss"]
             best_path = save_checkpoint(
                 {
                     "epoch": epoch,
                     "model_state_dict": model.state_dict(),
                     "optimizer_state_dict": optimizer.state_dict(),
                     "train_loss": train_loss,
-                    "val_loss": val_metrics[dataset_variant]["loss"],
-                    "val_acc": val_metrics[dataset_variant]["acc"],
+                    "val_loss": primary_val_metrics["loss"],
+                    "val_acc": primary_val_metrics["acc"],
                 },
                 checkpoint_dir,
                 "best_model.pth",
