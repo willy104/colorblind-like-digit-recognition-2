@@ -23,7 +23,12 @@ from torch.utils.data import DataLoader
 import config as cfg
 from dataset import MyDataset, train_transform
 from model import CNN
-from utils import load_checkpoint, save_checkpoint, save_epoch_metrics_to_excel
+from utils import (
+    load_checkpoint,
+    save_checkpoint,
+    save_epoch_metrics_to_excel,
+    load_epoch_metrics_from_excel,
+)
 from val import validate_cross
 
 
@@ -128,6 +133,12 @@ def main():
     os.makedirs(checkpoint_dir, exist_ok=True)
     os.makedirs(output_dir, exist_ok=True)
 
+    metrics_excel_path = os.path.join(output_dir, "epoch_metrics.xlsx")
+    headers = ["epoch", "train_loss", "train_acc"]
+    for variant in cfg.DATASET_VARIANTS:
+        headers.append(f"val_{variant}_loss")
+        headers.append(f"val_{variant}_acc")
+
     # Resume from checkpoint if requested
     if args.resume:
         if os.path.isfile(args.resume):
@@ -141,6 +152,26 @@ def main():
 
     # Training loop
     epoch_metrics_rows = []
+    if args.resume and os.path.isfile(metrics_excel_path):
+        previous_rows, _ = load_epoch_metrics_from_excel(metrics_excel_path)
+        if previous_rows:
+            filtered_rows = [
+                row
+                for row in previous_rows
+                if row.get("epoch") is not None and row.get("epoch") <= start_epoch
+            ]
+            if len(filtered_rows) != len(previous_rows):
+                logger.info(
+                    "Filtered epoch metrics to %d rows up to epoch %d",
+                    len(filtered_rows),
+                    start_epoch,
+                )
+            epoch_metrics_rows = filtered_rows
+            logger.info(
+                "Loaded %d epoch metrics rows from %s",
+                len(epoch_metrics_rows),
+                metrics_excel_path,
+            )
 
     for epoch in range(start_epoch + 1, cfg.EPOCHS + 1):
         train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
@@ -161,6 +192,7 @@ def main():
             epoch_row[f"val_{variant}_loss"] = val_metrics[variant]["loss"]
             epoch_row[f"val_{variant}_acc"] = val_metrics[variant]["acc"]
         epoch_metrics_rows.append(epoch_row)
+        save_epoch_metrics_to_excel(epoch_metrics_rows, metrics_excel_path, headers=headers)
 
         val_log_parts = [
             f"{variant}: Loss {val_metrics[variant]['loss']:.4f} Acc {val_metrics[variant]['acc']:.2f}%"
@@ -211,11 +243,6 @@ def main():
                 best_val_loss,
             )
 
-    metrics_excel_path = os.path.join(output_dir, "epoch_metrics.xlsx")
-    headers = ["epoch", "train_loss", "train_acc"]
-    for variant in cfg.DATASET_VARIANTS:
-        headers.append(f"val_{variant}_loss")
-        headers.append(f"val_{variant}_acc")
     save_epoch_metrics_to_excel(epoch_metrics_rows, metrics_excel_path, headers=headers)
     logger.info("Epoch metrics saved to %s", metrics_excel_path)
 
