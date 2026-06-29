@@ -40,9 +40,17 @@ TEST_DIR = os.path.join(DATA_ROOT, "test")
 SPECIAL_TRAIN_DIR = os.path.join(TRAIN_DIR, "special")
 EVAL_VARIANTS = ("white_black", "rainbow_bw", "bw_rainbow")
 DATASET_VARIANTS = list(EVAL_VARIANTS)
+SPECIAL_FILENAME_VARIANTS = ("bw", "rbw", "bwr")
+DATASET_FILENAME_VARIANTS = {
+    "white_black": ("bw",),
+    "rainbow_bw": ("rbw",),
+    "bw_rainbow": ("bwr",),
+    "special": SPECIAL_FILENAME_VARIANTS,
+}
 
 # Output directories
 CHECKPOINT_DIR = "checkpoints"
+
 LOG_DIR = "logs"
 OUTPUT_DIR = "outputs"
 
