@@ -3,13 +3,12 @@ import config as cfg
 
 
 class ConvBlock(nn.Module):
-    '''Convolution + BatchNorm + LeakyReLU (+ optional MaxPool)'''
+    '''Convolution + LeakyReLU (+ optional MaxPool)'''
 
     def __init__(self, in_ch, out_ch, ks=3, pool=True):
         super().__init__()
         layers = [
-            nn.Conv2d(in_ch, out_ch, kernel_size=ks, padding=ks // 2, bias=False),
-            nn.BatchNorm2d(out_ch),  # 針對每個 channels 獨立做 normalize 讓其輸出有更穩定的均值和方差，這樣有助於加速訓練，提高模型的穩定性和泛化能力
+            nn.Conv2d(in_ch, out_ch, kernel_size=ks, padding=ks // 2, bias=True),
             nn.LeakyReLU(0.01, inplace=True),
         ]
         if pool:
@@ -50,7 +49,6 @@ class CNN(nn.Module):
             nn.Flatten(),
             nn.Linear(256, 128),
             nn.LeakyReLU(0.01, inplace=True),
-            nn.Dropout(p=0.5),  # ( p=0.5 代表有 50% 機率關掉該神經元)
             nn.Linear(128, num_classes),
         )
 
