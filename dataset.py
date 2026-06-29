@@ -1,58 +1,82 @@
 import os
+import re
+
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
+
 import config as cfg
 
 
 class MyDataset(Dataset):
-    '''
-    讀取訓練圖做分類並標記 label
-    訓練圖的檔名：
-      - digit_X_NNNNNN.png ( X：(0~9) )
-      - <variant>_digit_X_NNNNNN.png (special 訓練圖，variant: bw/rbw/bwr)
-    e.g. digit_3_000123.png -> label=3
-         bw_digit_3_000123.png -> label=3
-    '''
+    """
+    Read images and labels from filenames.
+
+    Required filename format:
+      <variant>_digit_X_NNNNNN.png
+
+    For regular dataset folders, the accepted variant prefix is defined by
+    cfg.DATASET_FILENAME_VARIANTS. For the special training folder, variants
+    are bw/rbw/bwr.
+    """
+
+    FILENAME_PATTERN = re.compile(
+        r"^(?P<variant>.+)_digit_(?P<label>[0-9])_(?P<index>[0-9]+)\.png$",
+        re.IGNORECASE,
+    )
 
     def __init__(self, root_dir, transform=None):
         self.root_dir = root_dir
         self.transform = transform
-        self.image_files = [
-            f for f in os.listdir(root_dir) if f.lower().endswith(".png")
-        ]
+        self.expected_variants = self._expected_variants_for_dir(root_dir)
+        self.samples = []
+
+        for filename in sorted(os.listdir(root_dir)):
+            if not filename.lower().endswith(".png"):
+                continue
+            label = self._parse_label(filename)
+            self.samples.append((filename, label))
+
+    @staticmethod
+    def _expected_variants_for_dir(root_dir):
+        dataset_name = os.path.basename(os.path.normpath(root_dir)).lower()
+        return {
+            variant.lower()
+            for variant in cfg.DATASET_FILENAME_VARIANTS.get(dataset_name, (dataset_name,))
+        }
+
+    def _parse_label(self, filename):
+        match = self.FILENAME_PATTERN.match(filename)
+        if not match:
+            raise ValueError(
+                f"Unexpected filename format '{filename}'. "
+                "Expected '<variant>_digit_X_NNNNNN.png'."
+            )
+
+        variant = match.group("variant").lower()
+        if variant not in self.expected_variants:
+            expected = ", ".join(sorted(self.expected_variants))
+            raise ValueError(
+                f"Unexpected filename variant '{variant}' in '{filename}'. "
+                f"Expected one of: {expected}."
+            )
+
+        return int(match.group("label"))
 
     def __len__(self):
-        return len(self.image_files)
+        return len(self.samples)
 
     def __getitem__(self, idx):
-        img_name = self.image_files[idx]
+        img_name, label = self.samples[idx]
         img_path = os.path.join(self.root_dir, img_name)
         image = Image.open(img_path).convert("RGB")
-
-        # Parse label from filename: digit_X_NNNNNN.png or <variant>_digit_X_NNNNNN.png
-        parts = os.path.basename(img_name).split("_")
-        lower_parts = [part.lower() for part in parts]
-        if "digit" not in lower_parts:
-            raise ValueError(
-                f"Unexpected filename format '{img_name}'. "
-                "Expected 'digit_X_NNNNNN.png' or '<variant>_digit_X_NNNNNN.png'."
-            )
-        digit_index = lower_parts.index("digit")
-        label_index = digit_index + 1
-        if label_index >= len(parts):
-            raise ValueError(
-                f"Unexpected filename format '{img_name}'. "
-                "Expected 'digit_X_NNNNNN.png' or '<variant>_digit_X_NNNNNN.png'."
-            )
-        label = int(parts[label_index])
 
         if self.transform:
             image = self.transform(image)
         return image, label
 
 
-# Shared transforms 訓練圖預處理
+# Shared transforms for training/evaluation images.
 train_transform = transforms.Compose([
     transforms.Resize((cfg.IMAGE_SIZE, cfg.IMAGE_SIZE)),
     transforms.ToTensor(),
