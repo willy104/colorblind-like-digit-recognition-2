@@ -47,6 +47,7 @@ LOG_DIR = "logs"
 OUTPUT_DIR = "outputs"
 
 # DataLoader settings
+PREFETCH_FACTOR = 2  # 每個 worker 預先載入的 batch 數量
 NUM_WORKERS = 4
 '''
 NUM_WORKERS 代表有幾個子程序負責資料載入，每個 worker 會預先載入 prefetch_factor 個 batch，
