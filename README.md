@@ -8,7 +8,7 @@
 project/
 │
 ├── data/
-│   ├── train/          # 訓練圖片（digit_X_NNNNNN.png 格式）
+│   ├── train/          # 訓練圖片（<variant>_digit_X_NNNNNN.png 格式）
 │   │   ├── white_black/
 │   │   ├── rainbow_bw/
 │   │   ├── bw_rainbow/
@@ -48,7 +48,14 @@ pip install -r requirements.txt
 
 ### 2. 準備資料
 
-將圖片放入對應資料夾，檔名格式必須為 `digit_X_NNNNNN.png`（例如 `digit_3_000123.png`）：
+將圖片放入對應資料夾，檔名格式一律必須為 `<variant>_digit_X_NNNNNN.png`  其中 `X` 是 0-9 的 label，`variant` 對應如下：
+
+| 資料夾 | 檔名前綴 |
+|--------|----------|
+| `white_black` | `bw` |
+| `rainbow_bw` | `rbw` |
+| `bw_rainbow` | `bwr` |
+| `special` | `bw` / `rbw` / `bwr` |
 
 ```
 data/train/white_black/   ← 訓練集 (約 52000 張)
@@ -62,10 +69,11 @@ data/test/white_black/    ← 測試集 (約 10000 張)
 data/test/rainbow_bw/     ← 測試集 (約 10000 張)
 data/test/bw_rainbow/     ← 測試集 (約 10000 張)
 ```
-
-special 訓練集的檔名格式為 `<variant>_digit_X_NNNNNN.png`，其中 variant 固定為 `bw`、`rbw`、`bwr`：
-
+例如:
 ```
+data/train/white_black/bw_digit_3_000123.png
+data/val/rainbow_bw/rbw_digit_8_000456.png
+data/test/bw_rainbow/bwr_digit_1_000789.png
 data/train/special/bw_digit_3_000123.png
 data/train/special/rbw_digit_8_000456.png
 data/train/special/bwr_digit_1_000789.png
