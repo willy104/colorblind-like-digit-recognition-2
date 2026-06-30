@@ -17,11 +17,11 @@ project/
 │   │   ├── white_black/
 │   │   ├── rainbow_bw/
 │   │   └── bw_rainbow/
-│   └── test/           # 測試圖片
-│       ├── white_black/
-│       ├── rainbow_bw/
-│       └── bw_rainbow/
-│
+│   ├── test/           # 測試圖片
+│   │   ├── white_black/
+│   │   ├── rainbow_bw/
+│   │   └── bw_rainbow/
+│   └─ example/         # 各設計圖片的範例
 ├── checkpoints/        # 每個 epoch 的 checkpoint 與最佳模型
 ├── logs/               # 訓練與測試 log 記錄
 ├── outputs/            # 指標彙整 Excel
