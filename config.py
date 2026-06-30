@@ -24,7 +24,6 @@ BATCH_SIZE = 16
 EPOCHS = 20
 LEARNING_RATE = 5e-4
 NUM_CLASSES = 10  # 最後輸出為 0~9 十種
-AVG_EVERY = 20  # log average loss/accuracy every N batches
 
 # Data paths (relative to data root)
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
