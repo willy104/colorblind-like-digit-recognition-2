@@ -62,5 +62,8 @@ NUM_WORKERS 代表有幾個子程序負責資料載入，每個 worker 會預先
 總共會預先準備 NUM_WORKERS * prefetch_factor 個 batch。
 '''
 
+# config.py: 定義訓練使用的 domain 變體名稱（資料夾名稱）
+TRAIN_DOMAINS = ["white_black", "rainbow_bw"]
+
 # Device
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # DEVICE 使用 GPU
