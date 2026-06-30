@@ -12,7 +12,7 @@ project/
 │   │   ├── white_black/
 │   │   ├── rainbow_bw/
 │   │   ├── bw_rainbow/
-│   │   └── special/    # 專有訓練圖片（<variant>_digit_X_NNNNNN.png 格式）
+│   │   └── special/    # 專有訓練圖片，即 bw、rbw、bwr 的混合，命名為 bw圖片量_bwr圖片量_rbw圖片量 eg>bw26000_bwr0_rbw26000（<variant>_digit_X_NNNNNN.png 格式）
 │   ├── val/            # 驗證圖片
 │   │   ├── white_black/
 │   │   ├── rainbow_bw/
