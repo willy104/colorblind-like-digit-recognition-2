@@ -78,6 +78,8 @@ data/train/special/bw_digit_3_000123.png
 data/train/special/rbw_digit_8_000456.png
 data/train/special/bwr_digit_1_000789.png
 ```
+Example:
+white_black（bw）![image](https://github.com/willy104/colorblind-like-digit-recognition-2/blob/main/data/example/digit_0_000095.png)
 
 訓練時的交叉驗證與測試仍固定使用 `white_black`、`rainbow_bw`、`bw_rainbow` 三種資料集。
 
