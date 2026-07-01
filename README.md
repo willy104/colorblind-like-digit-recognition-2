@@ -203,13 +203,6 @@ python infer.py --image path/to/example.png --dataset white_black \
 | `TRAIN_DOMAINS` | best model 計分用 domain 清單 |
 
 ---
-
-CNN 包含：
-- 5 個 `ConvBlock`（卷積 + LeakyReLU），前 4 個附 MaxPool2d
-- `AdaptiveAvgPool2d(1,1)` 全域平均池化（取代龐大的 Flatten+Linear）
-- 兩層 FC 最終輸出 10 類
-
----
   
 ## GPU 支援
 
