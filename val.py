@@ -30,6 +30,10 @@ def validate(model, loader, criterion, device):
             total_correct += (predicted == labels).sum().item()
             total_samples += labels.size(0)
 
+    # 與 test.py 一致：避免除以 0
+    if total_samples == 0:
+        return 0.0, 0.0
+
     avg_loss = total_loss / total_samples
     accuracy = 100.0 * total_correct / total_samples
     return avg_loss, accuracy
