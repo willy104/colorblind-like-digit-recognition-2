@@ -18,7 +18,7 @@ project/
 │   │   ├── white_black/
 │   │   ├── rainbow_bw/
 │   │   ├── bw_rainbow/
-│   │   └── special/    # 特殊訓練集（可混合 bw/rbw/bwr）
+│   │   └── special/    # 特殊訓練集（可混合 bw/rbw/bwr）special 的命名規則：bw圖片量_bwr圖片量_rbw圖片量 eg>bw26000_bwr0_rbw26000
 │   ├── val/            # 驗證圖片
 │   │   ├── white_black/
 │   │   ├── rainbow_bw/
