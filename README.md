@@ -116,7 +116,15 @@ python train.py --dataset white_black --resume checkpoints/white_black/checkpoin
 
 訓練過程中：
 - 每個 epoch 自動儲存 checkpoint 至 `checkpoints/<variant>/`
-- 驗證 loss 最低時更新 `checkpoints/<variant>/best_model.pth`
+- 驗證 train domain loss 最低時更新 `checkpoints/<variant>/best_model.pth`
+```
+Saves a checkpoint every epoch and keeps the best model based on validation performance of the training domains.
+The selection rule is:
+- Primary criterion: highest average validation accuracy across the training domains.
+- Tie-break: lowest average validation loss across the training domains.
+Validation is still performed on every evaluation domain, and metrics for all domains are recorded.
+The training domains are defined in config.py.
+```
 - 每個 epoch 會做三種驗證資料集的交叉驗證
 - Log 輸出至終端與 `logs/train_<variant>.log`
 - 每個 epoch 的 train 與交叉 val 指標會彙整輸出至 `outputs/<variant>/epoch_metrics.xlsx`
@@ -155,7 +163,8 @@ python infer.py --image path/to/example.png --dataset white_black \
 | `EPOCHS` | 20 | 訓練總 epoch 數 |
 | `LEARNING_RATE` | 5e-4 | Adam 優化器學習率 |
 | `NUM_WORKERS` | 依照硬體性能自訂 | DataLoader 工作程序數 |  
-| `PREFETCH_FACTOR` | 依照硬體性能自訂 | 每個 worker 預先載入的 batch 數量 |
+| `PREFETCH_FACTOR` | 依照硬體性能自訂 | 每個 worker 預先載入的 batch 數量 |  
+| `TRAIN_DOMAINS` | 依照訓練 special 需求 | 有 bw、rbw、bwr |
 
 ## 模型架構
 
