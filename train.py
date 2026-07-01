@@ -7,7 +7,7 @@ Usage：
 The script：
   1. train 訓練圖資料源：data/train/<variant> 和 validation 驗證圖資料源：data/val/<variants>
   2. Trains the CNN for cfg.EPOCHS epochs with validation after each epoch  # 訓練共 cfg.EPOCHS 個 epochs 且 每個 epochs 後會驗證一次
-  3. Saves a checkpoint every epoch and keeps the best model (based on train-domain avg acc and loss)
+  3. Saves a checkpoint every epoch and keeps the best model (based on train-domain val avg acc and avg loss)
   4. Writes logs to logs/ and saves metrics to outputs/<variant>/epoch_metrics.xlsx
 '''
 
@@ -139,8 +139,8 @@ def main():
     optimizer = optim.Adam(model.parameters(), lr=cfg.LEARNING_RATE)
 
     start_epoch = 0
-    best_avg_acc = 0.0           # 以訓練域平均 Accuracy 選最優模型
-    best_avg_loss = float("inf")  # 平均 Loss 為次要條件
+    best_avg_train_domain_val_acc = 0.0           # 以訓練域平均 Accuracy 選最優模型
+    best_avg_train_domain_val_loss = float("inf")  # 平均 Loss 為次要條件
     checkpoint_dir = os.path.join(cfg.CHECKPOINT_DIR, dataset_variant)
     output_dir = os.path.join(cfg.OUTPUT_DIR, dataset_variant)
     os.makedirs(checkpoint_dir, exist_ok=True)
@@ -160,10 +160,10 @@ def main():
             ckpt = load_checkpoint(args.resume, model, optimizer)
             start_epoch = ckpt.get("epoch", 0)
             # 載入先前保存的訓練域平均指標
-            best_avg_acc = ckpt.get("avg_train_acc", 0.0)
-            best_avg_loss = ckpt.get("avg_train_loss", float("inf"))
-            logger.info("Resumed at epoch %d, best_avg_acc=%.2f%%, best_avg_loss=%.4f", 
-                        start_epoch, best_avg_acc, best_avg_loss)
+            best_avg_train_domain_val_acc = ckpt.get("avg_train_domain_val_acc", 0.0)
+            best_avg_train_domain_val_loss = ckpt.get("avg_train_domain_val_loss", float("inf"))
+            logger.info("Resumed at epoch %d, best_avg_train_domain_val_acc=%.2f%%, best_avg_train_domain_val_loss=%.4f", 
+                        start_epoch, best_avg_train_domain_val_acc, best_avg_train_domain_val_loss)
         else:
             logger.warning("Checkpoint not found: %s — starting from scratch.", args.resume)
 
@@ -232,8 +232,8 @@ def main():
                 "model_state_dict": model.state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),
                 "train_loss": train_loss,
-                "avg_train_loss": sum(val_metrics[v]["loss"] for v in ([dataset_variant] if dataset_variant in eval_variants else eval_variants)) / (1 if dataset_variant in eval_variants else len(eval_variants)),
-                "avg_train_acc": sum(val_metrics[v]["acc"] for v in ([dataset_variant] if dataset_variant in eval_variants else eval_variants)) / (1 if dataset_variant in eval_variants else len(eval_variants)),
+                "avg_train_domain_val_loss": sum(val_metrics[v]["loss"] for v in ([dataset_variant] if dataset_variant in eval_variants else eval_variants)) / (1 if dataset_variant in eval_variants else len(eval_variants)),
+                "avg_train_domain_val_acc": sum(val_metrics[v]["acc"] for v in ([dataset_variant] if dataset_variant in eval_variants else eval_variants)) / (1 if dataset_variant in eval_variants else len(eval_variants)),
             },
             checkpoint_dir,
             f"checkpoint_epoch{epoch}.pth",
@@ -245,30 +245,30 @@ def main():
             train_domains = [dataset_variant]
         else:
             train_domains = eval_variants
-        avg_train_loss = sum(val_metrics[v]["loss"] for v in train_domains) / len(train_domains)
-        avg_train_acc = sum(val_metrics[v]["acc"] for v in train_domains) / len(train_domains)
+        avg_train_domain_val_loss = sum(val_metrics[v]["loss"] for v in train_domains) / len(train_domains)
+        avg_train_domain_val_acc = sum(val_metrics[v]["acc"] for v in train_domains) / len(train_domains)
 
         # Keep best model: 先比較 avg_train_acc，再以 avg_train_loss 做次要條件
-        if (avg_train_acc > best_avg_acc) or (avg_train_acc == best_avg_acc and avg_train_loss < best_avg_loss):
-            best_avg_acc = avg_train_acc
-            best_avg_loss = avg_train_loss
+        if (avg_train_domain_val_acc > best_avg_train_domain_val_acc) or (avg_train_domain_val_acc == best_avg_train_domain_val_acc and avg_train_domain_val_loss < best_avg_train_domain_val_loss):
+            best_avg_train_domain_val_acc = avg_train_domain_val_acc
+            best_avg_train_domain_val_loss = avg_train_domain_val_loss
             best_path = save_checkpoint(
                 {
                     "epoch": epoch,
                     "model_state_dict": model.state_dict(),
                     "optimizer_state_dict": optimizer.state_dict(),
                     "train_loss": train_loss,
-                    "avg_train_loss": avg_train_loss,
-                    "avg_train_acc": avg_train_acc,
+                    "avg_train_domain_val_loss": avg_train_domain_val_loss,
+                    "avg_train_domain_val_acc": avg_train_domain_val_acc,
                 },
                 checkpoint_dir,
                 "best_model.pth",
             )
             logger.info(
-                "New best model saved: %s (avg_train_acc=%.2f%%, avg_train_loss=%.4f)",
+                "New best model saved: %s (avg_train_domain_val_acc=%.2f%%, avg_train_domain_val_loss=%.4f)",
                 best_path,
-                best_avg_acc,
-                best_avg_loss,
+                best_avg_train_domain_val_acc,
+                best_avg_train_domain_val_loss,
             )
 
     if start_epoch >= cfg.EPOCHS and epoch_metrics_rows:
