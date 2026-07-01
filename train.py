@@ -7,7 +7,7 @@ Usage：
 The script：
   1. train 訓練圖資料源：data/train/<variant> 和 validation 驗證圖資料源：data/val/<variants>
   2. Trains the CNN for cfg.EPOCHS epochs with validation after each epoch  # 訓練共 cfg.EPOCHS 個 epochs 且 每個 epochs 後會驗證一次
-  3. Saves a checkpoint every epoch and keeps the best model (lowest val loss on its own variant)
+  3. Saves a checkpoint every epoch and keeps the best model (based on train-domain avg acc and loss)
   4. Writes logs to logs/ and saves metrics to outputs/<variant>/epoch_metrics.xlsx
 '''
 
@@ -30,7 +30,6 @@ from utils import (
     load_epoch_metrics_from_excel,
 )
 from val import validate_cross
-
 
 # ---------------------------------------------------------------------------
 # Logging setup
@@ -140,7 +139,8 @@ def main():
     optimizer = optim.Adam(model.parameters(), lr=cfg.LEARNING_RATE)
 
     start_epoch = 0
-    best_val_loss = float("inf")
+    best_avg_acc = 0.0           # 以訓練域平均 Accuracy 選最優模型
+    best_avg_loss = float("inf")  # 平均 Loss 為次要條件
     checkpoint_dir = os.path.join(cfg.CHECKPOINT_DIR, dataset_variant)
     output_dir = os.path.join(cfg.OUTPUT_DIR, dataset_variant)
     os.makedirs(checkpoint_dir, exist_ok=True)
@@ -159,8 +159,11 @@ def main():
             logger.info("Resuming from checkpoint: %s", args.resume)
             ckpt = load_checkpoint(args.resume, model, optimizer)
             start_epoch = ckpt.get("epoch", 0)
-            best_val_loss = ckpt.get("val_loss", float("inf"))
-            logger.info("Resumed at epoch %d, best val_loss=%.4f", start_epoch, best_val_loss)
+            # 載入先前保存的訓練域平均指標
+            best_avg_acc = ckpt.get("avg_train_acc", 0.0)
+            best_avg_loss = ckpt.get("avg_train_loss", float("inf"))
+            logger.info("Resumed at epoch %d, best_avg_acc=%.2f%%, best_avg_loss=%.4f", 
+                        start_epoch, best_avg_acc, best_avg_loss)
         else:
             logger.warning("Checkpoint not found: %s — starting from scratch.", args.resume)
 
@@ -197,11 +200,7 @@ def main():
             eval_variants,
             common_loader_kwargs,
         )
-        primary_val_metrics = select_primary_val_metrics(
-            val_metrics,
-            eval_variants,
-            dataset_variant,
-        )
+        # 記錄每個驗證變體的 Loss/Accuracy
         epoch_row = {
             "epoch": epoch,
             "train_loss": train_loss,
@@ -226,40 +225,50 @@ def main():
             " | ".join(val_log_parts),
         )
 
-        # Save per-epoch checkpoint
+        # Save per-epoch checkpoint (也記錄訓練域平均指標方便查閱)
         checkpoint_path = save_checkpoint(
             {
                 "epoch": epoch,
                 "model_state_dict": model.state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),
                 "train_loss": train_loss,
-                "val_loss": primary_val_metrics["loss"],
-                "val_acc": primary_val_metrics["acc"],
+                "avg_train_loss": sum(val_metrics[v]["loss"] for v in ([dataset_variant] if dataset_variant in eval_variants else eval_variants)) / (1 if dataset_variant in eval_variants else len(eval_variants)),
+                "avg_train_acc": sum(val_metrics[v]["acc"] for v in ([dataset_variant] if dataset_variant in eval_variants else eval_variants)) / (1 if dataset_variant in eval_variants else len(eval_variants)),
             },
             checkpoint_dir,
             f"checkpoint_epoch{epoch}.pth",
         )
         logger.info("Checkpoint saved: %s", checkpoint_path)
 
-        # Keep best model
-        if primary_val_metrics["loss"] < best_val_loss:
-            best_val_loss = primary_val_metrics["loss"]
+        # 計算訓練域的平均 Accuracy 和 Loss（用於選最佳模型）
+        if dataset_variant in eval_variants:
+            train_domains = [dataset_variant]
+        else:
+            train_domains = eval_variants
+        avg_train_loss = sum(val_metrics[v]["loss"] for v in train_domains) / len(train_domains)
+        avg_train_acc = sum(val_metrics[v]["acc"] for v in train_domains) / len(train_domains)
+
+        # Keep best model: 先比較 avg_train_acc，再以 avg_train_loss 做次要條件
+        if (avg_train_acc > best_avg_acc) or (avg_train_acc == best_avg_acc and avg_train_loss < best_avg_loss):
+            best_avg_acc = avg_train_acc
+            best_avg_loss = avg_train_loss
             best_path = save_checkpoint(
                 {
                     "epoch": epoch,
                     "model_state_dict": model.state_dict(),
                     "optimizer_state_dict": optimizer.state_dict(),
                     "train_loss": train_loss,
-                    "val_loss": primary_val_metrics["loss"],
-                    "val_acc": primary_val_metrics["acc"],
+                    "avg_train_loss": avg_train_loss,
+                    "avg_train_acc": avg_train_acc,
                 },
                 checkpoint_dir,
                 "best_model.pth",
             )
             logger.info(
-                "New best model saved: %s (val_loss=%.4f)",
+                "New best model saved: %s (avg_train_acc=%.2f%%, avg_train_loss=%.4f)",
                 best_path,
-                best_val_loss,
+                best_avg_acc,
+                best_avg_loss,
             )
 
     if start_epoch >= cfg.EPOCHS and epoch_metrics_rows:
