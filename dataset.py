@@ -36,6 +36,7 @@ class MyDataset(Dataset):
                 continue
             label = self._parse_label(filename)
             self.samples.append((filename, label))
+            random.shuffle(self.samples)
 
     @staticmethod
     def _expected_variants_for_dir(root_dir):
