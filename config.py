@@ -20,7 +20,7 @@ transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5))：此變換將影像張量的
 '''
 
 # Training hyperparameters
-BATCH_SIZE = 16
+BATCH_SIZE = 64
 EPOCHS = 20
 LEARNING_RATE = 5e-4
 NUM_CLASSES = 10  # 最後輸出為 0~9 十種
