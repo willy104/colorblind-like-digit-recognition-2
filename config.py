@@ -65,6 +65,7 @@ NUM_WORKERS 代表有幾個子程序負責資料載入，每個 worker 會預先
 # Best-model scoring domains:
 # train.py 會使用 TRAIN_DOMAINS ∩ EVAL_VARIANTS 來計算 best_model 指標
 # 規則：先比平均 val acc，再以平均 val loss 當平手判定
+# "white_black", "rainbow_bw, "bw_rainbow" 這三個 domain 是我們的主要訓練目標
 TRAIN_DOMAINS = ["white_black", "rainbow_bw"]
 
 # Device
