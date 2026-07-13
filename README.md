@@ -113,7 +113,7 @@ bw_rainbow（bwr）
 ![image](https://github.com/willy104/colorblind-like-digit-recognition-2/blob/main/data/example/digit_2_058563.png)  
 rainbow_bw（rbw）  
 ![image](https://github.com/willy104/colorblind-like-digit-recognition-2/blob/main/data/example/digit_1_003878.png)  
-bbw（bbw）
+bbw（bbw）  
 ![image](https://github.com/willy104/colorblind-like-digit-recognition-2/blob/main/data/example/bbw_digit_0_000101.png)
 
 訓練時的交叉驗證與測試仍固定使用 `white_black`、`rainbow_bw`、`bw_rainbow`、`bbw` 四種資料集。
