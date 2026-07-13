@@ -18,15 +18,18 @@ project/
 │   │   ├── white_black/
 │   │   ├── rainbow_bw/
 │   │   ├── bw_rainbow/
-│   │   └── special/    # 特殊訓練集（可混合 bw/rbw/bwr）special 的命名規則：bw圖片量_bwr圖片量_rbw圖片量 eg>bw26000_bwr0_rbw26000
+|   |   ├── bbw/
+│   │   └── special/    # 特殊訓練集（可混合 bw/rbw/bwr/bbw）special 的命名規則：bw圖片量_bwr圖片量_rbw圖片量_bbw圖片量 eg>bw26000_bwr0_rbw26000_bbw0
 │   ├── val/            # 驗證圖片
 │   │   ├── white_black/
 │   │   ├── rainbow_bw/
-│   │   └── bw_rainbow/
+│   │   ├── bw_rainbow/
+|   |   └── bbw/
 │   ├── test/           # 測試圖片
 │   │   ├── white_black/
 │   │   ├── rainbow_bw/
-│   │   └── bw_rainbow/
+│   │   ├── bw_rainbow/
+|   |   └── bbw/
 │   └── example/        # 圖片風格示意（展示用途）
 │
 ├── checkpoints/        # 每個 epoch checkpoint 與最佳模型
@@ -71,19 +74,23 @@ pip install -r requirements.txt
 | `white_black` | `bw` |
 | `rainbow_bw` | `rbw` |
 | `bw_rainbow` | `bwr` |
-| `special` | `bw` / `rbw` / `bwr` |
+| `bbw` | `bbw` |
+| `special` | `bw` / `rbw` / `bwr`/ `bbw`|
 
 ```
 data/train/white_black/   ← 訓練集 (約 52000 張)
 data/train/rainbow_bw/    ← 訓練集 (約 52000 張)
 data/train/bw_rainbow/    ← 訓練集 (約 52000 張)
-data/train/special/       ← 專有訓練集（<variant>_digit_X_NNNNNN.png）
+data/train/bbw/           ← 訓練集 (約 52000 張)
+data/train/special/       ← 專有訓練集（不同種類不同數量混合)
 data/val/white_black/     ← 驗證集 (約 8000 張)
 data/val/rainbow_bw/      ← 驗證集 (約 8000 張)
 data/val/bw_rainbow/      ← 驗證集 (約 8000 張)
+data/val/bbw/             ← 驗證集 (約 8000 張)
 data/test/white_black/    ← 測試集 (約 10000 張)
 data/test/rainbow_bw/     ← 測試集 (約 10000 張)
 data/test/bw_rainbow/     ← 測試集 (約 10000 張)
+data/test/bbw/            ← 測試集 (約 10000 張)
 ```
 
 例如：
@@ -92,9 +99,11 @@ data/test/bw_rainbow/     ← 測試集 (約 10000 張)
 data/train/white_black/bw_digit_3_000123.png
 data/val/rainbow_bw/rbw_digit_8_000456.png
 data/test/bw_rainbow/bwr_digit_1_000789.png
+
 data/train/special/bw_digit_3_000123.png
 data/train/special/rbw_digit_8_000456.png
 data/train/special/bwr_digit_1_000789.png
+data/train/special/bbw_digit_2_000719.png
 ```
 
 Example:  
@@ -105,7 +114,7 @@ bw_rainbow（bwr）
 rainbow_bw（rbw）  
 ![image](https://github.com/willy104/colorblind-like-digit-recognition-2/blob/main/data/example/digit_1_003878.png)
 
-訓練時的交叉驗證與測試仍固定使用 `white_black`、`rainbow_bw`、`bw_rainbow` 三種資料集。
+訓練時的交叉驗證與測試仍固定使用 `white_black`、`rainbow_bw`、`bw_rainbow`、`bbw` 四種資料集。
 
 若資料不放在專案內的 `data/`，可設定環境變數 `DATA_ROOT` 指向本機資料根目錄（其下仍需 `train/val/test` 與三種分類資料夾）
 
@@ -136,7 +145,7 @@ python train.py --dataset white_black --resume checkpoints/white_black/checkpoin
 訓練期間：
 
 - 每個 epoch 都會儲存 checkpoint 到 `checkpoints/<dataset>/`
-- 每個 epoch 都會在 **三種驗證集**（`EVAL_VARIANTS`）上計算指標並記錄
+- 每個 epoch 都會在 **四種驗證集**（`EVAL_VARIANTS`）上計算指標並記錄
 - 每個 epoch 的 train + val 指標會輸出到 `outputs/<dataset>/epoch_metrics.xlsx`
 - log 會寫到 `logs/train_<dataset>.log`
 
@@ -159,7 +168,7 @@ python test.py --dataset white_black [--checkpoint checkpoints/white_black/best_
 
 輸出：
 
-- 三種測試資料集 accuracy
+- 四種測試資料集 accuracy
 - `logs/test_<dataset>.log`
 
 ---
