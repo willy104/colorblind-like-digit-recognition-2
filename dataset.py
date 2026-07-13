@@ -17,7 +17,7 @@ class MyDataset(Dataset):
 
     For regular dataset folders, the accepted variant prefix is defined by
     cfg.DATASET_FILENAME_VARIANTS. For the special training folder, variants
-    are bw/rbw/bwr.
+    are bw/rbw/bwr/bbw.
     """
 
     FILENAME_PATTERN = re.compile(
