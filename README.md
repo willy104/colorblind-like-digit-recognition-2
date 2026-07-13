@@ -108,11 +108,11 @@ data/train/special/bbw_digit_2_000719.png
 
 Example:  
 white_black（bw）  
-![image](https://github.com/willy104/colorblind-like-digit-recognition-2/blob/main/data/example/digit_0_000095.png)  
+![image](https://github.com/willy104/colorblind-like-digit-recognition-2/blob/main/data/example/bw_digit_0_000095.png)  
 bw_rainbow（bwr）  
-![image](https://github.com/willy104/colorblind-like-digit-recognition-2/blob/main/data/example/digit_2_058563.png)  
+![image](https://github.com/willy104/colorblind-like-digit-recognition-2/blob/main/data/example/bwr_digit_2_058563.png)  
 rainbow_bw（rbw）  
-![image](https://github.com/willy104/colorblind-like-digit-recognition-2/blob/main/data/example/digit_1_003878.png)  
+![image](https://github.com/willy104/colorblind-like-digit-recognition-2/blob/main/data/example/rbw_digit_1_003878.png)  
 bbw（bbw）  
 ![image](https://github.com/willy104/colorblind-like-digit-recognition-2/blob/main/data/example/bbw_digit_0_000101.png)
 
