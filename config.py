@@ -37,13 +37,14 @@ TRAIN_DIR = os.path.join(DATA_ROOT, "train")
 VAL_DIR = os.path.join(DATA_ROOT, "val")
 TEST_DIR = os.path.join(DATA_ROOT, "test")
 SPECIAL_TRAIN_DIR = os.path.join(TRAIN_DIR, "special")
-EVAL_VARIANTS = ("white_black", "rainbow_bw", "bw_rainbow")
+EVAL_VARIANTS = ("white_black", "rainbow_bw", "bw_rainbow", "bbw")
 DATASET_VARIANTS = list(EVAL_VARIANTS)
-SPECIAL_FILENAME_VARIANTS = ("bw", "rbw", "bwr")
+SPECIAL_FILENAME_VARIANTS = ("bw", "rbw", "bwr", "bbw")
 DATASET_FILENAME_VARIANTS = {
     "white_black": ("bw",),
     "rainbow_bw": ("rbw",),
     "bw_rainbow": ("bwr",),
+    "bbw": ("bbw",),
     "special": SPECIAL_FILENAME_VARIANTS,
 }
 
@@ -65,7 +66,7 @@ NUM_WORKERS 代表有幾個子程序負責資料載入，每個 worker 會預先
 # Best-model scoring domains:
 # train.py 會使用 TRAIN_DOMAINS ∩ EVAL_VARIANTS 來計算 best_model 指標
 # 規則：先比平均 val acc，再以平均 val loss 當平手判定
-# "white_black", "rainbow_bw, "bw_rainbow" 這三個 domain 是我們的主要訓練目標
+# "white_black", "rainbow_bw, "bw_rainbow", "bbw" 這三個 domain 是我們的主要訓練目標
 TRAIN_DOMAINS = ["white_black", "rainbow_bw"]
 
 # Device
