@@ -118,7 +118,7 @@ bbw（bbw）
 
 訓練時的交叉驗證與測試仍固定使用 `white_black`、`rainbow_bw`、`bw_rainbow`、`bbw` 四種資料集。
 
-若資料不放在專案內的 `data/`，可設定環境變數 `DATA_ROOT` 指向本機資料根目錄（其下仍需 `train/val/test` 與三種分類資料夾）
+若資料不放在專案內的 `data/`，可設定環境變數 `DATA_ROOT` 指向本機資料根目錄（其下仍需 `train/val/test` 與四種分類資料夾）
 
 ```bash
 # macOS/Linux
